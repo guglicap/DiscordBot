@@ -30,7 +30,7 @@ func main() {
 	check(err)
 	discord.AddHandler(messageCreated)
 	session = discord
-	db, err = sql.Open("mysql", "goo:Gucefalo1@tcp(127.0.0.1:3306)/discordbot")
+	db, err = sql.Open("mysql", "databaseAddressHere")
 	check(err)
 	defer db.Close()
 	err = discord.Open()
