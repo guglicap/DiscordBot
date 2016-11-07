@@ -32,6 +32,10 @@ var PublicCommands = map[string]Command{
 		desc:  "Use followed by a name, links you to that person's github.",
 		reply: githubPublic,
 	},
+	"source": {
+		desc:  "Links you to this bot's source code",
+		reply: source,
+	},
 }
 
 //PrivateCommands is a list of commands that can be used in a private channel.

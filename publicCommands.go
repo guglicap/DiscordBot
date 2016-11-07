@@ -103,3 +103,7 @@ func githubPublic(msg *discordgo.Message) string {
 	}
 	return "There you go\n" + link
 }
+
+func source(msg *discordgo.Message) string {
+	return "I'm here!\n" + "https://github.com/guglicap/DiscordBot"
+}
