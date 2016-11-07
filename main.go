@@ -3,6 +3,7 @@ package main
 //GUILD ID 227330229520171008
 //ROLE ID 238008384203390976
 import (
+	"io/ioutil"
 	"log"
 	"strings"
 
@@ -26,11 +27,14 @@ var (
 
 func main() {
 	magicWord = "!bot"
-	discord, err := discordgo.New("Bot " + "MjI5MzAyMTQ5Nzk5MDg0MDMy.CshR2w.PWImFjIlo028OGVMn0kFaVMTMFk")
+	secrets, err := ioutil.ReadFile("secrets.txt")
+	check(err)
+	secretsString := strings.Split(string(secrets), "\n")
+	discord, err := discordgo.New("Bot " + secretsString[0])
 	check(err)
 	discord.AddHandler(messageCreated)
 	session = discord
-	db, err = sql.Open("mysql", "databaseAddressHere")
+	db, err = sql.Open("mysql", secretsString[1])
 	check(err)
 	defer db.Close()
 	err = discord.Open()
