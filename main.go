@@ -20,26 +20,36 @@ func check(err error) {
 }
 
 var (
-	magicWord string
-	session   *discordgo.Session
-	db        *sql.DB
+	gamePrefix string
+	magicWord  string
+	game       *Game
+	playing    bool
+	secrets    []string
+	discord    *discordgo.Session
+	db         *sql.DB
 )
 
 func main() {
-	magicWord = "!bot"
-	secrets, err := ioutil.ReadFile("secrets.txt")
-	check(err)
-	secretsString := strings.Split(string(secrets), "\n")
-	discord, err := discordgo.New("Bot " + secretsString[0])
+	initialize()
+	discord, err := discordgo.New("Bot " + secrets[0])
 	check(err)
 	discord.AddHandler(messageCreated)
-	session = discord
-	db, err = sql.Open("mysql", secretsString[1])
+	db, err = sql.Open("mysql", secrets[1])
 	check(err)
 	defer db.Close()
 	err = discord.Open()
 	check(err)
 	<-make(chan struct{})
+}
+
+func initialize() {
+	magicWord = "!bot"
+	gamePrefix = "%"
+	playing = false
+	loadWords()
+	secrBytes, err := ioutil.ReadFile("secrets.txt")
+	check(err)
+	secrets = strings.Split(string(secrBytes), "\n")
 }
 
 func messageCreated(s *discordgo.Session, msg *discordgo.MessageCreate) {
@@ -48,6 +58,12 @@ func messageCreated(s *discordgo.Session, msg *discordgo.MessageCreate) {
 			privateMessage(s, msg)
 		} else {
 			publicMessage(s, msg)
+		}
+	}
+	if strings.HasPrefix(msg.Content, gamePrefix) && playing {
+		reply := handleGameMessage(strings.ToLower(msg.Content))
+		if len(reply) > 0 {
+			s.ChannelMessageSend(msg.ChannelID, reply)
 		}
 	}
 }

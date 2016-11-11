@@ -69,7 +69,7 @@ func sendFile(c, filename string) error {
 	if err != nil {
 		return err
 	}
-	session.ChannelFileSend(c, filename, bytes.NewBuffer(b))
+	discord.ChannelFileSend(c, filename, bytes.NewBuffer(b))
 	return nil
 }
 
@@ -106,4 +106,13 @@ func githubPublic(msg *discordgo.Message) string {
 
 func source(msg *discordgo.Message) string {
 	return "I'm here!\n" + "https://github.com/guglicap/DiscordBot"
+}
+
+func startGame(msg *discordgo.Message) string {
+	if playing {
+		return "You're already playing!"
+	}
+	game = newGame()
+	playing = true
+	return game.guess
 }

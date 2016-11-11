@@ -36,6 +36,10 @@ var PublicCommands = map[string]Command{
 		desc:  "Links you to this bot's source code",
 		reply: source,
 	},
+	"game": {
+		desc:  "Play guess a word game!",
+		reply: startGame,
+	},
 }
 
 //PrivateCommands is a list of commands that can be used in a private channel.
