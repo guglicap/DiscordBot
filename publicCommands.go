@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -35,7 +36,9 @@ import (
 func publicHelp() string {
 	result := "Syntax:\n  !bot <command>\n  Commands:\n"
 	for k, v := range PublicCommands {
-		result += "\t" + k + ":\t" + v.desc + "\n"
+		if len(v.desc) > 0 {
+			result += "\t" + k + ":\t" + v.desc + "\n"
+		}
 	}
 	return result
 }
@@ -69,7 +72,7 @@ func sendFile(c, filename string) error {
 	if err != nil {
 		return err
 	}
-	discord.ChannelFileSend(c, filename, bytes.NewBuffer(b))
+	session.ChannelFileSend(c, filename, bytes.NewBuffer(b))
 	return nil
 }
 
@@ -108,11 +111,33 @@ func source(msg *discordgo.Message) string {
 	return "I'm here!\n" + "https://github.com/guglicap/DiscordBot"
 }
 
-func startGame(msg *discordgo.Message) string {
+func startGame() string {
 	if playing {
 		return "You're already playing!"
 	}
 	game = newGame()
 	playing = true
 	return game.guess
+}
+
+func getGamePoints(tokens []string) string {
+	var points int
+	if id, ok := NametoID[strings.ToLower(tokens[3])]; ok {
+		err := db.QueryRow("SELECT GamePts FROM Users WHERE AccId=?", id).Scan(&points)
+		if err != nil {
+			return ""
+		}
+	}
+	return fmt.Sprintf("%s has %d points", tokens[3], points)
+}
+
+func gameCmd(msg *discordgo.Message) string {
+	tokens := strings.Fields(msg.Content)
+	if len(tokens) == 2 {
+		return startGame()
+	}
+	if len(tokens) == 4 {
+		return getGamePoints(tokens)
+	}
+	return ""
 }

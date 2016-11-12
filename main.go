@@ -25,17 +25,18 @@ var (
 	game       *Game
 	playing    bool
 	secrets    []string
-	discord    *discordgo.Session
+	session    *discordgo.Session
 	db         *sql.DB
 )
 
 func main() {
 	initialize()
 	discord, err := discordgo.New("Bot " + secrets[0])
-	check(err)
+	session = discord
 	discord.AddHandler(messageCreated)
 	db, err = sql.Open("mysql", secrets[1])
 	check(err)
+	loadWords()
 	defer db.Close()
 	err = discord.Open()
 	check(err)
@@ -46,7 +47,6 @@ func initialize() {
 	magicWord = "!bot"
 	gamePrefix = "%"
 	playing = false
-	loadWords()
 	secrBytes, err := ioutil.ReadFile("secrets.txt")
 	check(err)
 	secrets = strings.Split(string(secrBytes), "\n")
@@ -60,8 +60,8 @@ func messageCreated(s *discordgo.Session, msg *discordgo.MessageCreate) {
 			publicMessage(s, msg)
 		}
 	}
-	if strings.HasPrefix(msg.Content, gamePrefix) && playing {
-		reply := handleGameMessage(strings.ToLower(msg.Content))
+	if strings.HasPrefix(msg.Content, gamePrefix) {
+		reply := gameMessage(msg.Message)
 		if len(reply) > 0 {
 			s.ChannelMessageSend(msg.ChannelID, reply)
 		}

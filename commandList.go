@@ -38,7 +38,7 @@ var PublicCommands = map[string]Command{
 	},
 	"game": {
 		desc:  "Play guess a word game!",
-		reply: startGame,
+		reply: gameCmd,
 	},
 }
 
