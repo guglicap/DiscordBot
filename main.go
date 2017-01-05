@@ -24,7 +24,7 @@ var (
 	magicWord  string             //Keyword used to summon the bot
 	game       *Game              //The current Game
 	playing    bool               //Are we playing?
-	secrets    []string           //Bot Token and DB Auth
+	token      string             //Bot Token
 	session    *discordgo.Session //Discord session.
 	db         *sql.DB            //DB interface
 )
@@ -32,7 +32,7 @@ var (
 func main() {
 	initialize()
 	defer db.Close()
-	discord, err := discordgo.New("Bot " + secrets[0])
+	discord, err := discordgo.New("Bot " + token) //This is assuming a Bot Token.
 	session = discord
 	discord.AddHandler(messageCreated)
 	err = discord.Open()
@@ -45,12 +45,16 @@ func initialize() {
 	magicWord = "!bot "
 	gamePrefix = "%"
 	playing = false
+
+	//Get the secrets from the file
 	secrBytes, err := ioutil.ReadFile("secrets.txt")
 	check(err)
-	secrets = strings.Split(string(secrBytes), "\n")
+	token = strings.Split(string(secrBytes), "\n")[0]
+
 	db, err = sql.Open("sqlite3", "./db")
 	check(err)
-	loadWords()
+
+	initGame()
 }
 
 func messageCreated(s *discordgo.Session, msg *discordgo.MessageCreate) {
