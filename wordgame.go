@@ -71,7 +71,7 @@ func (self *Game) updateGuess(substr string) bool {
 
 	for i := 1; i < len(self.word)-1; i++ {
 		if string(self.word[i]) == substr {
-			//That mess is because for some reason you can't replace a single char in a string in Go.
+			//That mess is because strings are immutable objects in Go.
 			self.guess = self.guess[:i] + substr + self.guess[i+1:]
 		}
 	}
