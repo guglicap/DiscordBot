@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"math"
 	"net/http"
 	"regexp"
 )
@@ -31,10 +32,20 @@ func getPasteLanguage(link string) string {
 	return "text"
 }
 
-func getPasteRaw(id string) string {
+func getPasteRaw(id string) []string {
 	resp, err := http.Get("http://pastebin.com/raw/" + id)
 	check(err)
-	htmlBytes, err := ioutil.ReadAll(resp.Body)
+	rawBytes, err := ioutil.ReadAll(resp.Body)
 	check(err)
-	return string(htmlBytes)
+	raw := string(rawBytes)
+	splitNum := int(math.Ceil(float64(len(raw)) / 1900))
+	splits := make([]string, splitNum)
+	if len(raw) < 1900 {
+		splits[0] = raw
+		return splits
+	}
+	for i, r := range []rune(raw) {
+		splits[i/1900] += string(r)
+	}
+	return splits
 }

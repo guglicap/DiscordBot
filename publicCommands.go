@@ -108,7 +108,7 @@ func gameCmd(msg *discordgo.Message) string {
 	if len(tokens) == 2 {
 		return startGame()
 	}
-	if len(tokens) == 4 {
+	if len(tokens) == 4 && tokens[2] == "points" {
 		return getGamePoints(tokens)
 	}
 	return ""

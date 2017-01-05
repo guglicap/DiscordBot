@@ -66,17 +66,19 @@ func messageCreated(s *discordgo.Session, msg *discordgo.MessageCreate) {
 		if lang == "text" {
 			lang = ""
 		}
-		raw := getPasteRaw(id)
-		s.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("```%s\n%s\n```", lang, raw))
+		raws := getPasteRaw(id)
+		for _, raw := range raws {
+			s.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("```%s\n%s\n```", lang, raw))
+		}
 		return
 	}
 
 	//If not, let's see if it is a bot command.
 	if strings.HasPrefix(msg.Content, magicWord) {
 		if x, _ := s.Channel(msg.ChannelID); x.IsPrivate {
-			privateMessage(s, msg)
+			sendMessage(s, msg, PrivateCommands, privateHelp)
 		} else {
-			publicMessage(s, msg)
+			sendMessage(s, msg, PublicCommands, publicHelp)
 		}
 		return
 	}
@@ -92,27 +94,14 @@ func messageCreated(s *discordgo.Session, msg *discordgo.MessageCreate) {
 	//If not, bye.
 }
 
-func privateMessage(s *discordgo.Session, msg *discordgo.MessageCreate) {
+//Takes the list of commands and the help function as parameters
+func sendMessage(s *discordgo.Session, msg *discordgo.MessageCreate, commands map[string]Command, help func() string) {
 	c := msg.ChannelID
-	tokens := getTokens(c, msg.Content, privateHelp)
+	tokens := getTokens(c, msg.Content, help)
 	if tokens == nil {
 		return
 	}
-	if command, ok := PrivateCommands[tokens[1]]; ok {
-		reply := command.reply(msg.Message)
-		if len(reply) > 0 {
-			s.ChannelMessageSend(c, reply)
-		}
-	}
-}
-
-func publicMessage(s *discordgo.Session, msg *discordgo.MessageCreate) {
-	c := msg.ChannelID
-	tokens := getTokens(c, msg.Content, publicHelp)
-	if tokens == nil {
-		return
-	}
-	if command, ok := PublicCommands[tokens[1]]; ok {
+	if command, ok := commands[tokens[1]]; ok {
 		reply := command.reply(msg.Message)
 		if len(reply) > 0 {
 			s.ChannelMessageSend(c, reply)
