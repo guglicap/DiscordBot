@@ -14,17 +14,12 @@ func privateHelp() string {
 	return result
 }
 
-func checkDbConnection() {
-	err := db.Ping()
-	check(err)
-}
-
 func githubPrivate(msg *discordgo.Message) string {
 	accID := msg.Author.ID
 	if len(accID) < 1 {
 		return ""
 	}
-	checkDbConnection()
+	//checkDbConnection()
 	tokens := strings.Fields(msg.Content)
 	if len(tokens) < 3 {
 		return "Not enough Tokens"
@@ -32,7 +27,7 @@ func githubPrivate(msg *discordgo.Message) string {
 	if len(tokens[2]) < 1 {
 		return "Link null"
 	}
-	_, err := db.Exec("INSERT INTO Users (AccId, Github) VALUES (?, ?) ON DUPLICATE KEY UPDATE Github=VALUES(Github)", accID, tokens[2])
+	_, err := db.Exec("INSERT OR REPLACE INTO Users (AccId, Github, GamePts) VALUES ($1, $2, (SELECT GamePts FROM Users WHERE AccId = $1))", accID, tokens[2])
 	check(err)
 	return "Yes, sir."
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"regexp"
@@ -74,7 +73,7 @@ func newGame() *Game {
 func flushPeopleDb() {
 	checkDbConnection()
 	for id, pts := range points {
-		db.Exec("INSERT INTO Users (AccId, GamePts) VALUES (?, ?) ON DUPLICATE KEY UPDATE GamePts=VALUES(GamePts)", id, pts)
+		db.Exec("INSERT OR REPLACE INTO Users (AccId, Github, GamePts) VALUES ($1, (SELECT Github FROM Users WHERE AccId = $1), $2)", id, pts)
 	}
 }
 
@@ -89,8 +88,6 @@ func gameMessage(msg *discordgo.Message) string {
 		return "I need a letter or a guess, buddy. Not a percent sign."
 	}
 	if len(msg.Content) > 2 && len(msg.Content)-1 != len(game.word) {
-		fmt.Println(len(msg.Content))
-		fmt.Println(game.word)
 		return "You can give me only one letter or your guess."
 	}
 	if game.updateGuess(regexp.QuoteMeta(msg.Content[1:])) {
