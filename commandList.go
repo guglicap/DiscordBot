@@ -44,6 +44,10 @@ var PublicCommands = map[string]Command{
 		desc:  "Play guess a word game!",
 		reply: gameCmd,
 	},
+	"briahnansfw": {
+		desc:  "You know",
+		reply: sendCat,
+	},
 }
 
 //PrivateCommands is a list of commands that can be used in a private channel.

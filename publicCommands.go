@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"strings"
+	"time"
+
+	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -108,4 +112,11 @@ func gameCmd(msg *discordgo.Message) string {
 		return getGamePoints(tokens)
 	}
 	return ""
+}
+
+func sendCat(msg *discordgo.Message) string {
+	time.Sleep(3 * time.Second)
+	rand.Seed(time.Now().UnixNano())
+	res := strconv.Itoa(100 + rand.Intn(1000))
+	return "http://placekitten.com/g/" + res + "/" + res
 }
