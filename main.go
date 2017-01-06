@@ -1,30 +1,23 @@
 package main
 
 import (
-	"io/ioutil"
-	"log"
 	"strings"
 
 	"database/sql"
 
 	"fmt"
 
+	"os"
+
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/mattn/go-sqlite3"
 )
-
-func check(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 var (
 	gamePrefix string             //Game guesses prefix
 	magicWord  string             //Keyword used to summon the bot
 	game       *Game              //The current Game
 	playing    bool               //Are we playing?
-	token      string             //Bot Token
 	session    *discordgo.Session //Discord session.
 	db         *sql.DB            //DB interface
 )
@@ -32,7 +25,11 @@ var (
 func main() {
 	initialize()
 	defer db.Close()
-	discord, err := discordgo.New("Bot " + token) //This is assuming a Bot Token.
+	if len(os.Args) < 2 {
+		fmt.Println("You need to provide to bot token as an argument.")
+		return
+	}
+	discord, err := discordgo.New("Bot " + os.Args[1]) //This is assuming a Bot Token.
 	session = discord
 	discord.AddHandler(messageCreated)
 	err = discord.Open()
@@ -45,12 +42,7 @@ func initialize() {
 	magicWord = "!bot "
 	gamePrefix = "%"
 	playing = false
-
-	//Get the secrets from the file
-	secrBytes, err := ioutil.ReadFile("secrets.txt")
-	check(err)
-	token = strings.Split(string(secrBytes), "\n")[0]
-
+	var err error
 	db, err = sql.Open("sqlite3", "./db")
 	check(err)
 
@@ -76,9 +68,9 @@ func messageCreated(s *discordgo.Session, msg *discordgo.MessageCreate) {
 	//If not, let's see if it is a bot command.
 	if strings.HasPrefix(msg.Content, magicWord) {
 		if x, _ := s.Channel(msg.ChannelID); x.IsPrivate {
-			sendMessage(s, msg, PrivateCommands, privateHelp)
+			sendMessage(s, msg, PrivateCommands)
 		} else {
-			sendMessage(s, msg, PublicCommands, publicHelp)
+			sendMessage(s, msg, PublicCommands)
 		}
 		return
 	}
@@ -95,11 +87,14 @@ func messageCreated(s *discordgo.Session, msg *discordgo.MessageCreate) {
 }
 
 //Takes the list of commands and the help function as parameters
-func sendMessage(s *discordgo.Session, msg *discordgo.MessageCreate, commands map[string]Command, help func() string) {
+func sendMessage(s *discordgo.Session, msg *discordgo.MessageCreate, commands map[string]Command) {
 	c := msg.ChannelID
-	tokens := getTokens(c, msg.Content, help)
+	tokens := getTokens(c, msg.Content)
 	if tokens == nil {
 		return
+	}
+	if tokens[1] == "help" {
+		s.ChannelMessageSend(c, help(commands))
 	}
 	if command, ok := commands[tokens[1]]; ok {
 		reply := command.reply(msg.Message)

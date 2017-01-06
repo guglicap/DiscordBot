@@ -45,7 +45,7 @@ var PublicCommands = map[string]Command{
 		reply: gameCmd,
 	},
 	"briahnansfw": {
-		desc:  "You know",
+		desc:  "",
 		reply: sendCat,
 	},
 }

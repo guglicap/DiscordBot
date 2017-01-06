@@ -13,16 +13,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func publicHelp() string {
-	result := "Syntax:\n  !bot <command>\n  Commands:\n"
-	for k, v := range PublicCommands {
-		if len(v.desc) > 0 {
-			result += "\t" + k + ":\t" + v.desc + "\n"
-		}
-	}
-	return result
-}
-
 func me(msg *discordgo.Message) string {
 	return "You're " + msg.Author.Username
 }
